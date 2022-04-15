@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>图片编辑</title>
+  <!-- <link href="css/bootstrap.min.css" rel="stylesheet" /> -->
+  <script src="js/jquery_1.9.0.js"></script>
+  <script src="js/bootstrap.min.js"></script>
+
+  <link rel="stylesheet" href="https://unpkg.com/@picocss/pico@latest/css/pico.min.css">
+  <link rel="stylesheet" href="./css/index.css">
+  <script src="js/sinoImageEditModule.js"></script>
+</head>
+
+<body>
+  <div class="container">
+    <article data-theme="light" style="height: 96vh;display: flex;
+    flex-direction: column;">
+      <header>
+        <nav>
+          <ul id="myTab">
+            <li class="active"><a href="#imageCut">裁剪</a></li>
+            <li><a href="#imageRotation">旋转、缩放</a></li>
+            <li><a href="#imageWatermark">图片水印</a></li>
+            <li><a href="#imageCompress">图片压缩</a></li>
+            <li><a href="#textWatermark">文字水印</a></li>
+            <!-- <li><a href="#saveToServer" data-toggle="tab">保存到服务端</a></li> -->
+          </ul>
+        </nav>
+      </header>
+      <div class="grid" style="flex: 1;">
+        <section id="myTabContent">
+          <div id="imageCut">
+            <button onclick="sinoImageEditModule.imageCut()">应用</button>
+          </div>
+          <div id="imageRotation">
+            <label for="inputRotation">旋转角度: <input id="inputRotation" type="number" name="inputRotation"
+                value="60"></label>
+            <div class="grid"> <button
+                onclick=" sinoImageEditModule.imageRotation(document.getElementById('inputRotation').value)">旋转</button>
+              <button onclick="sinoImageEditModule.saveCanvas(1,function(){alert('应用成功')})">应用</button>
+            </div>
+            <div style="margin-top: 50px">设置尺寸: </div>
+            <label class="grid" style="margin: 10px">图片宽:(px)<input id="imageWidth" type="number" value="400"></label>
+            <label class="grid" style="margin: 10px">图片高:(px)<input id="imageHeight" type="number" value="400"></label>
+            <div style="margin-top: 50px">常用尺寸: </div>
+            <div style="margin: 10px 10px 10px 30px">
+              <a onclick="sinoImageEditModule.setSize(60,60);">60*60</a>
+              <a style="margin-left: 36px" onclick="sinoImageEditModule.setSize(80,60);">80*60</a>
+            </div>
+            <div style="margin: 10px 10px 10px 30px">
+              <a onclick="sinoImageEditModule.setSize(80,80);">80*80</a>
+              <a style="margin-left: 36px" onclick="sinoImageEditModule.setSize(136,96);">136*96</a>
+            </div>
+            <div style="margin: 10px 10px 10px 30px">
+              <a onclick="sinoImageEditModule.setSize(200,100);">200*100</a>
+              <a style="margin-left: 20px" onclick="sinoImageEditModule.setSize(310,230);">310*230</a>
+            </div>
+            <div style="margin: 10px 10px 10px 30px">
+              <a onclick="sinoImageEditModule.setSize(360,270);">360*270</a>
+              <a style="margin-left: 20px" onclick="sinoImageEditModule.setSize(450,250);">450*250</a>
+            </div>
+            <div style="margin: 10px 10px 10px 30px">
+              <a onclick="sinoImageEditModule.setSize(480,270);">480*270</a>
+              <a style="margin-left: 20px" onclick="sinoImageEditModule.setSize(500,300);">500*300</a>
+            </div>
+            <div style="margin: 10px 10px 10px 30px">
+              <a onclick="sinoImageEditModule.setSize(468,60);">468*60</a>
+              <a style="margin-left: 30px" onclick="sinoImageEditModule.setSize();" title="恢复到原始图片">恢复原图</a>
+            </div>
+
+            <div class="grid">
+              <button
+                onclick="sinoImageEditModule.setSize(document.getElementById('imageWidth').value,document.getElementById('imageHeight').value);">查看</button>
+              <button onclick="sinoImageEditModule.saveCanvas(1,function(){alert('应用成功')})">应用</button>
+            </div>
+
+
+          </div>
+          <div id="imageWatermark">
+            <div style="margin: 10px"> 水印图片:
+              <label for="inputPicUrl" style="line-height: 5vh;">
+                <span class="buttonPic">点击上传</span>
+                <span id="imgInfo" style="overflow: hidden;"></span>
+                <input type="file" id="inputPicUrl" accept="image/*" style="display: none;">
+              </label>
+            </div>
+            <form style="margin: 10px">
+              透明度:
+              <div class="grid">
+                <input type="range" min="0" max="100" step="1" value="50" id="selectOpacity" name="range"
+                  oninput="result.value = `${selectOpacity.value/100}`">
+                <output name="result">0.5</output>
+              </div>
+            </form>
+            <div> 图片宽:(px) <input id="inputImageWidth" type="number" value="100"></div>
+            <div> 图片高:(px) <input id="inputImageHeight" type="number" value="100"> </div>
+            <div>图片左边距:(px) <input id="inputPicLeft" type="number" value="0"> </div>
+            <div> 图片上边距:(px) <input id="inputPicTop" type="number" value="0"></div>
+            <div class="grid">
+              <button id="btnImgWatermark" style="margin: 20px">添加</button>
+              <button style="margin: 20px" onclick="saveWatermarkImage()">应用</button>
+            </div>
+
+          </div>
+
+          <!-- 本地压缩 -->
+
+          <div id="imageCompress" style="width: 100%;height: 100%;">
+            <!-- quality {Number} 图片压缩质量，取值 0 - 1，默认为0.7 -->
+            <form>
+              压缩质量:
+              <div class="grid">
+                <input type="range" min="0.1" max="0.9" step="0.1" value="0.7" id="qualitySelected" name="range"
+                  oninput="result.value = `${(qualitySelected.value)*100}%`">
+                <output name="result">70%</output>
+              </div>
+            </form>
+            <div class="compressClass">
+              <div id="upload-container" class="col-xs-12 text-center">
+                <input accept="image/*" type="file" id="imgComp" />
+              </div>
+              <aside class="grid">
+                <button>清空队列</button>
+                <button>打包下载</button>
+              </aside>
+            </div>
+          </div>
+
+          <div id="textWatermark">
+            <label style="margin: 10px">文本: <textarea id="inputText" style="max-width: 100%;"></textarea> </label>
+            <label style="margin: 10px">颜色: <input id="inputTextColor" type="color" style="width: 13%;"> </label>
+            <form style="margin: 10px">
+              透明度:
+              <div class="grid">
+                <input type="range" min="0" max="100" step="1" value="50" id="selectTextOpacity"
+                  oninput="resultText.value = `${selectTextOpacity.value/100}`">
+                <output name="resultText">0.5</output>
+              </div>
+            </form>
+            <div> 文字框宽:(px) <input id="inputTextWidth" type="number" value="100"></div>
+            <div> 文字框高:(px) <input id="inputTextHeight" type="number" value="30"> </div>
+            <div>文字框左边距:(px) <input id="inputLeft" type="number" value="0"></div>
+            <div> 文字框上边距:(px) <input id="inputTop" type="number" value="0"></div>
+            <div> 字号:(px) <input id="inputSize" type="number" value="20"></div>
+            <div> 字体:
+              <select id="inputFont">
+                <option value="Times New Roman" selected>Times New Roman</option>
+                <option value="Sans-serif">Sans-serif</option>
+                <option value="Verdana">Verdana</option>
+                <option value="microsoft yahei">microsoft yahei</option>
+                <option value="Arial Narrow Bold Italic">Arial Narrow Bold Italic</option>
+              </select>
+            </div>
+            <div>文字Left:(px) <input id="inputTextLeft" type="number" value="10"></div>
+            <div> 文字Top:(px) <input id="inputTextTop" type="number" value="20"></div>
+            <div class="grid">
+              <button id="btnTextWatermarkTest" style="margin: 20px">添加</button>
+              <button style="margin: 20px" onclick="saveWatermarkText()">应用</button>
+            </div>
+          </div>
+          <div id="saveToServer">
+            <button id="btnSaveImage">保存</button>
+          </div>
+        </section>
+        <section style="position: relative;overflow: auto;">
+          <!-- <p>拖动图片到下面的矩形框实现上传图片：</p> -->
+
+          <label id="el-upload-dragger" for="hiddenFile">
+            <div class="upload-icon">
+              <img src="./images/upload.png" alt="上传" style="margin-bottom: 0.4vh;" draggable="false">
+              <div class="el-upload__text">将文件拖到此处，或<em>点击上传</em></div>
+            </div>
+            <input type="file" id="hiddenFile" accept="image/*" style="display: none;">
+          </label>
+          <canvas id="canvas" width="400" height="400" style="border:2px dashed gray;position:absolute;">
+          </canvas>
+          <!-- </div> -->
+          <div id='imageCover'
+            style="width:100px; height:100px;position:absolute;cursor:pointer;display:none;z-index:4;">
+            <canvas id="watermarkImageCanvas" width="100" height="100" style="position:absolute;"></canvas>
+          </div>
+          <div id='textCover' style="width:100px; height:30px;position:absolute;cursor:pointer;z-index:5;display:none">
+            <canvas id="watermarkTextCanvas" width="100" height="30" style="position:absolute;"></canvas>
+          </div>
+        </section>
+      </div>
+    </article>
+  </div>
+
+  <script src='./util/route.js'></script>
+  <script>
+    /**
+    * 应用文本水印
+    * */
+    var saveWatermarkText = function (e) {
+      sinoImageEditModule.saveCanvas(3, function (state) {
+        if (state > 0)
+          alert('应用成功！')
+        else
+          alert('未添加文本水印！')
+      });
+    };
+
+    /**
+    * 应用图片水印
+    * */
+    var saveWatermarkImage = function (e) {
+      sinoImageEditModule.saveCanvas(2, function (state) {
+        if (state > 0)
+          alert('应用成功！')
+        else
+          alert('未添加图片水印！')
+      });
+    };
+    document.querySelector('#inputPicUrl').addEventListener('change', function (e) {
+      const file = e.target.files[0] || e.dataTransfer.files[0];
+      console.log('file', file)
+      // 未上传？：
+      if (file.size > 1024 * 50) {
+        alert('图片尺寸请小于50K');
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = function (e) {
+        const base64 = e.target.result;
+        document.getElementById('inputPicUrl').dataset['base64'] = base64;
+      };
+      reader.readAsDataURL(file);
+
+      const info = `${file.name} 大小：${(file.size / 1024).toFixed(1)}Kb`;
+      imgInfo.textContent = info;
+    })
+
+  </script>
+  <script src="./js/initEditModule.js"></script>
+
+  <!-- 压缩 -->
+  <script src="./js/lrz.bundle.js"></script>
+  <script src="./js/compression.js"></script>
+</body>
+
+</html>
